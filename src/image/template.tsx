@@ -48,7 +48,7 @@ export function WrappedTemplate({ stats, logoDataUrl }: { stats: ClaudeCodeStats
       />
       <Header year={stats.year} logoDataUrl={logoDataUrl} />
 
-      <div style={{ marginTop: spacing[12], display: "flex", flexDirection: "row", gap: spacing[16], alignItems: "flex-start" }}>
+      <div style={{ marginTop: spacing[8], display: "flex", flexDirection: "row", gap: spacing[16], alignItems: "flex-start" }}>
         <HeroStatItem
           label="Started"
           subtitle={formatDate(stats.firstSessionDate)}
@@ -85,13 +85,13 @@ export function WrappedTemplate({ stats, logoDataUrl }: { stats: ClaudeCodeStats
         </div>
       </div>
 
-      <Section title="Activity" marginTop={spacing[10]}>
+      <Section title="Activity" marginTop={spacing[8]}>
         <ActivityHeatmap dailyActivity={stats.dailyActivity} year={stats.year} maxStreakDays={stats.maxStreakDays} />
       </Section>
 
       <div
         style={{
-          marginTop: spacing[12],
+          marginTop: spacing[8],
           display: "flex",
           flexDirection: "row",
           gap: spacing[16],
@@ -525,7 +525,7 @@ function StatsGrid({ stats }: { stats: ClaudeCodeStats }) {
   return (
     <div
       style={{
-        marginTop: "auto",
+        marginTop: spacing[8],
         display: "flex",
         flexDirection: "column",
         gap: spacing[5],
@@ -617,7 +617,7 @@ function Footer() {
   return (
     <div
       style={{
-        marginTop: spacing[12],
+        marginTop: spacing[8],
         display: "flex",
         flexDirection: "row",
         justifyContent: "center",
