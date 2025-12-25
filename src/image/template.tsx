@@ -525,7 +525,7 @@ function StatsGrid({ stats }: { stats: ClaudeCodeStats }) {
   return (
     <div
       style={{
-        marginTop: spacing[2],
+        marginTop: spacing[4],
         display: "flex",
         flexDirection: "column",
         gap: spacing[5],
