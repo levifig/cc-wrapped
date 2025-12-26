@@ -70,6 +70,12 @@ async function main() {
 
   const requestedYear = values.year ? parseInt(values.year, 10) : new Date().getFullYear();
 
+  // Validate year parameter
+  if (Number.isNaN(requestedYear) || requestedYear < 2024 || requestedYear > new Date().getFullYear()) {
+    p.cancel(`Invalid year: ${values.year}. Must be between 2024 and ${new Date().getFullYear()}`);
+    process.exit(1);
+  }
+
   const availability = isWrappedAvailable(requestedYear);
   if (!availability.available) {
     if (Array.isArray(availability.message)) {
