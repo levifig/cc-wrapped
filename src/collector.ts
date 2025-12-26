@@ -6,6 +6,7 @@ import { join, resolve } from "node:path";
 import os from "node:os";
 import { createInterface } from "node:readline";
 import { calculateCostUSD, getModelPricing, type ModelPricing } from "./pricing";
+import { formatDateKey } from "./utils/dates";
 
 export interface ClaudeStatsCache {
   version?: number;
@@ -337,9 +338,3 @@ function ensureNumber(value: unknown): number {
   return typeof value === "number" && Number.isFinite(value) ? value : 0;
 }
 
-function formatDateKey(date: Date): string {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
-  return `${year}-${month}-${day}`;
-}
