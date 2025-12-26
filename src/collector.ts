@@ -81,11 +81,19 @@ export async function checkClaudeDataExists(): Promise<boolean> {
   return resolveClaudeDataPath() !== null;
 }
 
+function isValidStatsCache(data: unknown): data is ClaudeStatsCache {
+  return typeof data === "object" && data !== null;
+}
+
 export async function loadClaudeStatsCache(): Promise<ClaudeStatsCache> {
   const dataPath = resolveClaudeDataPath();
   if (!dataPath) throw new Error("Claude data not found");
   const raw = await readFile(join(dataPath, "stats-cache.json"), "utf8");
-  return JSON.parse(raw) as ClaudeStatsCache;
+  const parsed: unknown = JSON.parse(raw);
+  if (!isValidStatsCache(parsed)) {
+    throw new Error("Invalid stats-cache.json format");
+  }
+  return parsed;
 }
 
 export async function collectClaudeProjects(year: number): Promise<Set<string>> {
