@@ -53,6 +53,9 @@ export interface ClaudeUsageSummary {
   totalCostUSD: number;
   modelTokenTotals: Map<string, number>;
   firstTimestamp: Date | null;
+  dailyActivity: Map<string, number>;
+  totalMessages: number;
+  totalSessions: number;
 }
 
 export async function checkClaudeDataExists(): Promise<boolean> {
@@ -98,6 +101,8 @@ export async function collectClaudeUsageSummary(year: number): Promise<ClaudeUsa
   const modelTokenTotals = new Map<string, number>();
   const pricingCache = new Map<string, ModelPricing | null>();
   const processedHashes = new Set<string>();
+  const dailyActivity = new Map<string, number>();
+  const sessionIds = new Set<string>();
 
   let totalInputTokens = 0;
   let totalOutputTokens = 0;
@@ -106,6 +111,7 @@ export async function collectClaudeUsageSummary(year: number): Promise<ClaudeUsa
   let totalTokens = 0;
   let totalCostUSD = 0;
   let firstTimestamp: Date | null = null;
+  let totalMessages = 0;
 
   for (const root of roots) {
     const exists = await pathIsDirectory(root);
@@ -145,6 +151,15 @@ export async function collectClaudeUsageSummary(year: number): Promise<ClaudeUsa
 
         if (firstTimestamp == null || entryDate < firstTimestamp) {
           firstTimestamp = entryDate;
+        }
+
+        const dateKey = formatDateKey(entryDate);
+        dailyActivity.set(dateKey, (dailyActivity.get(dateKey) || 0) + 1);
+        totalMessages += 1;
+
+        const sessionId = typeof entry?.sessionId === "string" ? entry.sessionId : undefined;
+        if (sessionId) {
+          sessionIds.add(sessionId);
         }
 
         const usage = entry?.message?.usage;
@@ -206,6 +221,9 @@ export async function collectClaudeUsageSummary(year: number): Promise<ClaudeUsa
     totalCostUSD,
     modelTokenTotals,
     firstTimestamp,
+    dailyActivity,
+    totalMessages,
+    totalSessions: sessionIds.size,
   };
 }
 
@@ -286,4 +304,11 @@ async function listJsonlFiles(dir: string): Promise<string[]> {
 
 function ensureNumber(value: unknown): number {
   return typeof value === "number" && Number.isFinite(value) ? value : 0;
+}
+
+function formatDateKey(date: Date): string {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
 }

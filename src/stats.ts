@@ -17,20 +17,46 @@ export async function calculateStats(year: number): Promise<ClaudeCodeStats> {
   let totalSessions = 0;
   let totalToolCalls = 0;
 
-  for (const entry of statsCache.dailyActivity ?? []) {
-    const entryDate = entry?.date;
-    if (!entryDate) continue;
-    const entryYear = new Date(entryDate).getFullYear();
-    if (entryYear !== year) continue;
+  const usageDailyActivity = usageSummary.dailyActivity;
+  if (usageDailyActivity.size > 0) {
+    for (const [entryDate, messageCount] of usageDailyActivity.entries()) {
+      const entryYear = new Date(entryDate).getFullYear();
+      if (entryYear !== year) continue;
+      dailyActivity.set(entryDate, messageCount);
+      totalMessages += messageCount;
 
-    const messageCount = entry.messageCount ?? 0;
-    dailyActivity.set(entryDate, messageCount);
-    totalMessages += messageCount;
-    totalSessions += entry.sessionCount ?? 0;
-    totalToolCalls += entry.toolCallCount ?? 0;
+      const weekday = new Date(entryDate).getDay();
+      weekdayCounts[weekday] += messageCount;
+    }
+    totalSessions = usageSummary.totalSessions;
+  } else {
+    for (const entry of statsCache.dailyActivity ?? []) {
+      const entryDate = entry?.date;
+      if (!entryDate) continue;
+      const entryYear = new Date(entryDate).getFullYear();
+      if (entryYear !== year) continue;
 
-    const weekday = new Date(entryDate).getDay();
-    weekdayCounts[weekday] += messageCount;
+      const messageCount = entry.messageCount ?? 0;
+      dailyActivity.set(entryDate, messageCount);
+      totalMessages += messageCount;
+      totalSessions += entry.sessionCount ?? 0;
+      totalToolCalls += entry.toolCallCount ?? 0;
+
+      const weekday = new Date(entryDate).getDay();
+      weekdayCounts[weekday] += messageCount;
+    }
+  }
+
+  if (totalToolCalls === 0) {
+    for (const entry of statsCache.dailyActivity ?? []) {
+      totalToolCalls += entry.toolCallCount ?? 0;
+    }
+  }
+
+  if (totalSessions === 0) {
+    for (const entry of statsCache.dailyActivity ?? []) {
+      totalSessions += entry.sessionCount ?? 0;
+    }
   }
 
   const modelTokenTotals = new Map<string, number>();
