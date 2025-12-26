@@ -45,7 +45,7 @@ const CLAUDE_CONFIG_DIR_ENV = "CLAUDE_CONFIG_DIR";
 
 // Resolve Claude data path
 // Priority: 1. CLAUDE_CONFIG_DIR env var, 2. ~/.config/claude (XDG), 3. ~/.claude (legacy)
-function resolveClaudeDataPath(): string | null {
+export function resolveClaudeDataPath(): string | null {
   const envPath = process.env[CLAUDE_CONFIG_DIR_ENV]?.trim();
   if (envPath && existsSync(join(envPath, "stats-cache.json"))) {
     return envPath;

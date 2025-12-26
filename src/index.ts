@@ -4,7 +4,7 @@ import * as p from "@clack/prompts";
 import { join } from "node:path";
 import { parseArgs } from "node:util";
 
-import { checkClaudeDataExists } from "./collector";
+import { checkClaudeDataExists, resolveClaudeDataPath } from "./collector";
 import { calculateStats } from "./stats";
 import { generateImage } from "./image/generator";
 import { displayInTerminal, getTerminalName } from "./terminal/display";
@@ -27,6 +27,7 @@ USAGE:
 OPTIONS:
   -y, --year <YYYY>        Generate wrapped for a specific year (default: current year)
   -c, --config-dir <PATH>  Path to Claude Code config directory (default: auto-detect)
+  -V, --verbose            Show debug information
   -h, --help               Show this help message
   -v, --version            Show version number
 
@@ -34,6 +35,7 @@ EXAMPLES:
   cc-wrapped                            # Generate current year wrapped
   cc-wrapped --year 2025                # Generate 2025 wrapped
   cc-wrapped -c ~/.config/claude        # Use specific config directory
+  cc-wrapped --verbose                  # Show debug info
 `);
 }
 
@@ -44,6 +46,7 @@ async function main() {
     options: {
       year: { type: "string", short: "y" },
       "config-dir": { type: "string", short: "c" },
+      verbose: { type: "boolean", short: "V" },
       help: { type: "boolean", short: "h" },
       version: { type: "boolean", short: "v" },
     },
@@ -66,7 +69,15 @@ async function main() {
     process.env.CLAUDE_CONFIG_DIR = values["config-dir"];
   }
 
+  const verbose = values.verbose ?? false;
+
   p.intro("claude code wrapped");
+
+  // Show verbose debug info
+  if (verbose) {
+    const configPath = resolveClaudeDataPath();
+    p.log.info(`Config directory: ${configPath ?? "not found"}`);
+  }
 
   const requestedYear = values.year ? parseInt(values.year, 10) : new Date().getFullYear();
 
@@ -101,7 +112,8 @@ async function main() {
     stats = await calculateStats(requestedYear);
   } catch (error) {
     spinner.stop("Failed to collect stats");
-    p.cancel(`Error: ${error}`);
+    const message = error instanceof Error ? error.message : String(error);
+    p.cancel(`Failed to collect stats: ${message}`);
     process.exit(1);
   }
 
@@ -109,6 +121,11 @@ async function main() {
     spinner.stop("No data found");
     p.cancel(`No Claude Code activity found for ${requestedYear}`);
     process.exit(0);
+  }
+
+  // Show verbose stats summary
+  if (verbose) {
+    p.log.info(`Sessions: ${stats.totalSessions}, Messages: ${stats.totalMessages}, Projects: ${stats.totalProjects}`);
   }
 
   spinner.stop("Found your stats!");
